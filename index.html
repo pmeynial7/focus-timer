@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>focus. — Pomodoro IB</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+/* ── RESET & VARS ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #f5f2ed;
+  --surface:   #eae6df;
+  --surface-h: #dce8d0;
+  --border:    #c8d4bc;
+  --text:      #2d3d1e;
+  --muted:     #7a8f6a;
+  --gd:        #4a5e3a;   /* green dark */
+  --gm:        #7a9e60;   /* green mid */
+  --gl:        #b5c9a0;   /* green light */
+  --gp:        #dce8d0;   /* green pale */
+  --gray:      #9e9b94;
+  --cream:     #faf8f4;
+  --brown:     #6b5a3e;
+  --font-h:    'Crimson Pro', Georgia, serif;
+  --font-b:    'DM Sans', system-ui, sans-serif;
+  --r:         12px;
+  --nav-h:     52px;
+}
+html { scroll-behavior: smooth; }
+body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  font-family: var(--font-b);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: var(--font-b); cursor: pointer; border: none; background: none; color: inherit; }
+a { text-decoration: none; color: inherit; }
+select { font-family: var(--font-b); }
+
+/* ── NAV ─────────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--nav-h);
+  background: rgba(245,242,237,.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  gap: 16px;
+}
+.nav-logo {
+  font-family: var(--font-h); font-style: italic; font-size: 1.35rem;
+  color: var(--gd); letter-spacing: -0.02em; flex-shrink: 0;
+}
+.nav-links {
+  display: flex; gap: 28px;
+  font-size: 0.82rem; font-weight: 400; color: var(--muted);
+}
+.nav-links a { transition: color .15s; }
+.nav-links a:hover { color: var(--gd); }
+.nav-subj {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 10px; font-size: 0.78rem;
+  color: var(--gd); outline: none; cursor: pointer; flex-shrink: 0;
+}
+@media (max-width: 540px) {
+  .nav-links { display: none; }
+  nav { padding: 0 16px; }
+}
+
+/* ── WELCOME CARD ─────────────────────────────────────── */
+#welcome-card {
+  max-width: 480px; margin: 20px auto 0; padding: 0 16px;
+}
+.welcome-inner {
+  background: var(--surface-h);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.welcome-text strong {
+  font-family: var(--font-h); font-style: italic; font-size: 1rem;
+  color: var(--gd); display: block;
+}
+.welcome-text span { font-size: 0.78rem; color: var(--muted); }
+.welcome-dismiss {
+  background: var(--gd); color: var(--cream);
+  border-radius: 8px; padding: 6px 14px; font-size: 0.75rem; font-weight: 500;
+  white-space: nowrap; transition: opacity .15s; flex-shrink: 0;
+}
+.welcome-dismiss:hover { opacity: .82; }
+
+/* ── SECTION SHARED ──────────────────────────────────── */
+section { max-width: 480px; margin: 0 auto; padding: 48px 16px; }
+section + section { padding-top: 24px; }
+.section-title {
+  font-family: var(--font-h); font-style: italic; font-size: 1.9rem;
+  color: var(--gd); text-align: center; margin-bottom: 6px;
+}
+.section-sub {
+  font-size: 0.82rem; color: var(--muted); text-align: center; margin-bottom: 28px;
+}
+
+/* ── SUBJECT PILLS ──────────────────────────────────── */
+.subject-pills {
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+  margin-bottom: 28px; scrollbar-width: none;
+}
+.subject-pills::-webkit-scrollbar { display: none; }
+.subj-pill {
+  flex-shrink: 0;
+  background: var(--surface); color: var(--gd);
+  border: 1px solid var(--border);
+  border-radius: 100px; padding: 6px 14px;
+  font-size: 0.78rem; font-weight: 500; transition: all .15s;
+}
+.subj-pill.active {
+  background: var(--gd); color: var(--cream); border-color: var(--gd);
+}
+.subj-pill:hover:not(.active) { background: var(--surface-h); }
+
+/* ── TIMER RING ─────────────────────────────────────── */
+.timer-ring-wrap {
+  position: relative; width: 240px; height: 240px; margin: 0 auto 20px;
+}
+#timer-ring { display: block; }
+#timer-progress {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  transition: stroke-dashoffset 0.9s linear;
+}
+.timer-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+#timer-time {
+  font-family: var(--font-h); font-weight: 300; font-size: 3.6rem;
+  color: var(--text); line-height: 1; letter-spacing: -0.02em;
+}
+#timer-label {
+  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--muted); margin-top: 8px;
+}
+
+/* ── MODE PILLS ─────────────────────────────────────── */
+.mode-pills {
+  display: flex; gap: 6px; justify-content: center; margin-bottom: 20px;
+}
+.mode-pill {
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 100px;
+  padding: 5px 14px; font-size: 0.75rem; transition: all .15s;
+}
+.mode-pill.active { background: var(--gd); color: var(--cream); border-color: var(--gd); }
+.mode-pill:hover:not(.active) { background: var(--surface-h); color: var(--gd); }
+
+/* ── TIMER CONTROLS ─────────────────────────────────── */
+.timer-controls {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.ctrl-sec {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.ctrl-sec:hover { background: var(--surface-h); color: var(--gd); }
+#play-btn {
+  background: var(--gd); color: var(--cream);
+  border-radius: 100px; padding: 10px 36px;
+  font-size: 0.88rem; font-weight: 500; letter-spacing: 0.05em;
+  transition: all .15s; min-width: 130px; text-align: center;
+}
+#play-btn:hover { opacity: .88; transform: scale(1.03); }
+#play-btn.running { background: var(--surface); color: var(--gd); border: 1px solid var(--gd); }
+
+/* ── SESSION DOTS ───────────────────────────────────── */
+.dots-row {
+  display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;
+}
+.pom-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--gl); border: 1.5px solid var(--border);
+  transition: all .25s;
+}
+.pom-dot.filled { background: var(--gd); border-color: var(--gd); }
+.pom-dot.current {
+  background: var(--gm); border-color: var(--gm);
+  box-shadow: 0 0 0 3px rgba(122,158,96,.2);
+}
+
+/* ── RECENT SESSIONS ────────────────────────────────── */
+.recent-sessions {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+}
+.recent-header {
+  padding: 10px 14px;
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.sess-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; font-size: 0.78rem; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.sess-row:last-child { border-bottom: none; }
+.sess-tag {
+  background: var(--gp); color: var(--gd);
+  border-radius: 4px; padding: 2px 7px; font-size: 0.68rem; font-weight: 500;
+  flex-shrink: 0;
+}
+.sess-dur { color: var(--muted); white-space: nowrap; }
+.sess-ago { color: var(--gl); font-size: 0.72rem; white-space: nowrap; }
+.no-sessions {
+  padding: 16px 14px; font-size: 0.78rem; color: var(--muted); text-align: center;
+}
+
+/* ── PLANT SECTION ──────────────────────────────────── */
+#la-planta { padding-top: 0; }
+.willow-frame {
+  border: 1px solid var(--border); border-radius: 16px;
+  background: var(--surface); padding: 12px;
+  margin-bottom: 16px; position: relative; overflow: hidden;
+}
+.willow-frame::before, .willow-frame::after {
+  content: '';
+  position: absolute; width: 28px; height: 28px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cellipse cx='14' cy='14' rx='5' ry='10' fill='%23b5c9a0' transform='rotate(-35 14 14)'/%3E%3Cellipse cx='14' cy='14' rx='4' ry='8' fill='%237a9e60' opacity='.5' transform='rotate(25 14 14)'/%3E%3C/svg%3E") no-repeat center;
+  opacity: 0.5; pointer-events: none;
+}
+.willow-frame::before { top: 6px; left: 6px; }
+.willow-frame::after  { top: 6px; right: 6px; transform: scaleX(-1); }
+#willow-svg {
+  display: block; width: 100%; height: auto; max-width: 400px; margin: 0 auto;
+}
+.plant-prog-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px 16px; margin-bottom: 12px;
+}
+.plant-prog-label {
+  font-size: 0.75rem; color: var(--muted); margin-bottom: 8px;
+}
+.prog-track {
+  background: var(--gp); border-radius: 100px; height: 6px; overflow: hidden;
+}
+.prog-fill {
+  background: var(--gm); height: 100%; border-radius: 100px;
+  transition: width .8s ease;
+}
+.daily-card {
+  background: var(--surface-h); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.82rem;
+}
+.daily-card .daily-text { color: var(--muted); }
+.daily-card .daily-text strong { color: var(--gd); }
+.daily-leaf svg { transition: all .3s; }
+
+/* ── STATS SECTION ──────────────────────────────────── */
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px 14px; text-align: center;
+}
+.stat-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.stat-num { font-family: var(--font-h); font-size: 2.1rem; font-weight: 300; color: var(--gd); line-height: 1; }
+.stat-unit { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.chart-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px; margin-bottom: 12px;
+}
+.chart-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); margin-bottom: 14px;
+}
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-lbl { font-size: 0.7rem; color: var(--muted); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; height: 6px; background: var(--gp); border-radius: 100px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--gm); border-radius: 100px; transition: width .6s ease; }
+.bar-val { font-size: 0.7rem; color: var(--muted); width: 34px; text-align: right; flex-shrink: 0; }
+.log-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+}
+.log-header {
+  padding: 10px 14px; font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); border-bottom: 1px solid var(--border);
+}
+.log-row {
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px;
+  font-size: 0.75rem; border-bottom: 1px solid var(--border);
+}
+.log-row:last-child { border-bottom: none; }
+.log-row:nth-child(even) { background: rgba(200,212,188,.06); }
+.log-date { color: var(--muted); flex-shrink: 0; font-size: 0.7rem; }
+.log-subj { flex: 1; color: var(--text); }
+.log-dur { color: var(--gm); flex-shrink: 0; }
+
+/* ── FOOTER ─────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 16px 32px;
+  text-align: center;
+}
+.footer-branch { margin: 0 auto 12px; display: block; }
+.footer-name { font-family: var(--font-h); font-style: italic; font-size: 0.95rem; color: var(--muted); margin-bottom: 5px; }
+.footer-sub { font-size: 0.72rem; color: var(--gray); }
+
+/* ── COMPLETION FLASH ─────────────────────────────────── */
+#completion-flash {
+  position: fixed; top: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%);
+  background: var(--gd); color: var(--cream);
+  border-radius: 100px; padding: 9px 22px; font-size: 0.82rem; font-weight: 500;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity .3s; z-index: 200;
+  box-shadow: 0 4px 20px rgba(74,94,58,.35);
+}
+#completion-flash.show { opacity: 1; }
+
+/* ── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 400px) {
+  .subject-pills { gap: 5px; }
+  .subj-pill { padding: 5px 10px; font-size: 0.72rem; }
+  #timer-time { font-size: 3rem; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- WELCOME CARD -->
+<div id="welcome-card">
+  <div class="welcome-inner">
+    <div class="welcome-text">
+      <strong>bienvenido a focus.</strong>
+      <span>cada pomodoro hace crecer tu sauce llorón</span>
+    </div>
+    <button class="welcome-dismiss" onclick="dismissWelcome()">entendido →</button>
+  </div>
+</div>
+
+<!-- COMPLETION FLASH -->
+<div id="completion-flash">pomodoro completado — descansa un momento</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">focus.</div>
+  <div class="nav-links">
+    <a href="#timer">timer</a>
+    <a href="#la-planta">la planta</a>
+    <a href="#estadísticas">estadísticas</a>
+  </div>
+  <select class="nav-subj" id="nav-subj" onchange="setSubjectFromNav(this.value)">
+    <option>Math AA HL</option>
+    <option>Physics SL</option>
+    <option>Business HL</option>
+    <option>English B HL</option>
+    <option>French ab initio</option>
+    <option>LyL Español SL</option>
+  </select>
+</nav>
+
+<!-- TIMER SECTION -->
+<section id="timer">
+
+  <!-- Subject Pills -->
+  <div class="subject-pills" id="subject-pills">
+    <button class="subj-pill active" onclick="setSubject('Math AA HL',this)">Math AA HL</button>
+    <button class="subj-pill" onclick="setSubject('Physics SL',this)">Physics SL</button>
+    <button class="subj-pill" onclick="setSubject('Business HL',this)">Business HL</button>
+    <button class="subj-pill" onclick="setSubject('English B HL',this)">English B HL</button>
+    <button class="subj-pill" onclick="setSubject('French ab initio',this)">French ab initio</button>
+    <button class="subj-pill" onclick="setSubject('LyL Español SL',this)">LyL Español SL</button>
+  </div>
+
+  <!-- Timer Ring -->
+  <div class="timer-ring-wrap">
+    <svg id="timer-ring" viewBox="0 0 240 240" width="240" height="240">
+      <!-- Track -->
+      <circle cx="120" cy="120" r="100" fill="none" stroke="#dce8d0" stroke-width="8"/>
+      <!-- Progress arc -->
+      <circle id="timer-progress" cx="120" cy="120" r="100" fill="none"
+        stroke="#4a5e3a" stroke-width="8" stroke-linecap="round"
+        stroke-dasharray="628.318" stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-overlay">
+      <div id="timer-time">25:00</div>
+      <div id="timer-label">enfocado</div>
+    </div>
+  </div>
+
+  <!-- Mode Pills -->
+  <div class="mode-pills">
+    <button class="mode-pill active" onclick="setMode('pomodoro',this)">Pomodoro</button>
+    <button class="mode-pill" onclick="setMode('short',this)">Descanso corto</button>
+    <button class="mode-pill" onclick="setMode('long',this)">Descanso largo</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="timer-controls">
+    <button class="ctrl-sec" onclick="resetTimer()" title="Reiniciar">↺</button>
+    <button id="play-btn" onclick="toggleTimer()">iniciar</button>
+    <button class="ctrl-sec" onclick="skipTimer()" title="Saltar">↷</button>
+  </div>
+
+  <!-- Session Dots -->
+  <div class="dots-row" id="dots-row">
+    <div class="pom-dot current"></div>
+    <div class="pom-dot"></div>
+    <div class="pom-dot"></div>
+    <div class="pom-dot"></div>
+  </div>
+
+  <!-- Recent Sessions -->
+  <div class="recent-sessions" id="recent-sessions">
+    <div class="recent-header">Últimas sesiones</div>
+    <div class="no-sessions">Aún no hay sesiones. ¡Empieza tu primer pomodoro!</div>
+  </div>
+
+</section>
+
+<!-- PLANT SECTION -->
+<section id="la-planta">
+  <div class="section-title">el fruto de tus estudios</div>
+  <div class="section-sub">cada hora estudiada hace crecer tu sauce llorón</div>
+
+  <div class="willow-frame">
+    <svg id="willow-svg" viewBox="0 0 400 340" width="400" height="340" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="plant-prog-wrap">
+    <div class="plant-prog-label" id="plant-prog-label">0 horas de estudio total · faltan 100 para florecer</div>
+    <div class="prog-track"><div class="prog-fill" id="plant-prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="daily-card">
+    <div class="daily-text">
+      hoy has estudiado <strong id="daily-h">0h</strong> ·
+      la planta creció <strong id="daily-cm">0 cm</strong>
+    </div>
+    <div class="daily-leaf">
+      <svg id="leaf-icon" width="22" height="22" viewBox="0 0 22 22">
+        <ellipse cx="11" cy="11" rx="4" ry="8" fill="#b5c9a0" transform="rotate(-20 11 11)"/>
+        <line x1="11" y1="19" x2="11" y2="11" stroke="#7a9e60" stroke-width="1"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- STATS SECTION -->
+<section id="estadísticas">
+  <div class="section-title">estadísticas</div>
+  <div class="section-sub" style="margin-bottom:20px">tu progreso de estudio</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-lbl">Esta semana</div>
+      <div class="stat-num" id="stat-week">0</div>
+      <div class="stat-unit">horas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Este mes</div>
+      <div class="stat-num" id="stat-month">0</div>
+      <div class="stat-unit">horas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Racha actual</div>
+      <div class="stat-num" id="stat-streak">0</div>
+      <div class="stat-unit">días</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Pomodoros</div>
+      <div class="stat-num" id="stat-total-pom">0</div>
+      <div class="stat-unit">completados</div>
+    </div>
+  </div>
+
+  <div class="chart-block">
+    <div class="chart-title">horas por materia · esta semana</div>
+    <div id="chart-week"></div>
+  </div>
+
+  <div class="chart-block">
+    <div class="chart-title">horas por materia · este mes</div>
+    <div id="chart-month"></div>
+  </div>
+
+  <div class="log-block">
+    <div class="log-header">registro de sesiones</div>
+    <div id="session-log"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <svg class="footer-branch" width="140" height="44" viewBox="0 0 140 44">
+    <path d="M 15 38 C 45 18 90 15 125 38" stroke="#c8d4bc" stroke-width="1.2" fill="none"/>
+    <line x1="42" y1="27" x2="37" y2="40" stroke="#b5c9a0" stroke-width="1"/>
+    <line x1="70" y1="20" x2="67" y2="34" stroke="#b5c9a0" stroke-width="1"/>
+    <line x1="98" y1="24" x2="103" y2="38" stroke="#b5c9a0" stroke-width="1"/>
+    <ellipse cx="37" cy="40" rx="3" ry="5" fill="#b5c9a0" opacity=".7" transform="rotate(-15 37 40)"/>
+    <ellipse cx="67" cy="35" rx="3" ry="5" fill="#7a9e60" opacity=".6" transform="rotate(10 67 35)"/>
+    <ellipse cx="103" cy="38" rx="3" ry="5" fill="#b5c9a0" opacity=".7" transform="rotate(20 103 38)"/>
+  </svg>
+  <div class="footer-name">hecho con cariño por Pierre Meynial</div>
+  <div class="footer-sub">IB Mayo 2026 · todos los datos se guardan en tu dispositivo</div>
+</footer>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════ */
+const SUBJECTS = ['Math AA HL','Physics SL','Business HL','English B HL','French ab initio','LyL Español SL'];
+const MODES = {
+  pomodoro: { label: 'enfocado',       min: 25 },
+  short:    { label: 'descanso corto', min: 5  },
+  long:     { label: 'descanso largo', min: 15 },
+};
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const CIRCUMFERENCE = 2 * Math.PI * 100; // 628.318
+
+/* ═══════════════════════════════════════
+   LOCALSTORAGE
+═══════════════════════════════════════ */
+function lsGet(k, d) {
+  try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : d; }
+  catch { return d; }
+}
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+function getSessions()     { return lsGet('focus_sessions', []); }
+function addSession(s)     { const all = getSessions(); all.push(s); lsSet('focus_sessions', all); }
+function getSettings()     { return { pomodoro_minutes:25, short_break:5, long_break:15, notifications:true, ...lsGet('focus_settings',{}) }; }
+
+/* ═══════════════════════════════════════
+   DATA COMPUTATIONS
+═══════════════════════════════════════ */
+function pomodoroSessions() { return getSessions().filter(s => s.type === 'pomodoro'); }
+
+function startOfWeek(d) {
+  const r = new Date(d);
+  const day = r.getDay();
+  r.setDate(r.getDate() - ((day + 6) % 7));
+  r.setHours(0,0,0,0);
+  return r;
+}
+
+function getTotalHours() {
+  return pomodoroSessions().reduce((a,s) => a + s.duration_minutes/60, 0);
+}
+function getHoursToday() {
+  const today = new Date().toDateString();
+  return pomodoroSessions()
+    .filter(s => new Date(s.completed_at).toDateString() === today)
+    .reduce((a,s) => a + s.duration_minutes/60, 0);
+}
+function getHoursThisWeek() {
+  const ws = startOfWeek(new Date());
+  return pomodoroSessions()
+    .filter(s => new Date(s.completed_at) >= ws)
+    .reduce((a,s) => a + s.duration_minutes/60, 0);
+}
+function getHoursThisMonth() {
+  const now = new Date();
+  return pomodoroSessions()
+    .filter(s => {
+      const d = new Date(s.completed_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    })
+    .reduce((a,s) => a + s.duration_minutes/60, 0);
+}
+function getHoursBySubject(period) {
+  const result = {};
+  SUBJECTS.forEach(s => result[s] = 0);
+  const now = new Date();
+  const ws = startOfWeek(now);
+  pomodoroSessions().forEach(s => {
+    const d = new Date(s.completed_at);
+    let inc = false;
+    if (period === 'week')  inc = d >= ws;
+    else if (period === 'month') inc = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    else inc = true;
+    if (inc) result[s.subject] = (result[s.subject] || 0) + s.duration_minutes/60;
+  });
+  return result;
+}
+function getCurrentStreak() {
+  const pomos = pomodoroSessions();
+  if (!pomos.length) return 0;
+  const days = new Set(pomos.map(s => new Date(s.completed_at).toDateString()));
+  let streak = 0;
+  const check = new Date();
+  // If no session today, start from yesterday
+  if (!days.has(check.toDateString())) check.setDate(check.getDate() - 1);
+  while (days.has(check.toDateString())) {
+    streak++;
+    check.setDate(check.getDate() - 1);
+  }
+  return streak;
+}
+function timeAgo(isoStr) {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)  return 'ahora';
+  if (mins < 60) return `hace ${mins}m`;
+  const hrs = Math.floor(mins/60);
+  if (hrs < 24)  return `hace ${hrs}h`;
+  return `hace ${Math.floor(hrs/24)}d`;
+}
+function fmtHrs(h) {
+  const total = Math.round(h * 60);
+  const hh = Math.floor(total/60), mm = total % 60;
+  if (hh === 0) return mm + 'm';
+  if (mm === 0) return hh + 'h';
+  return hh + 'h ' + mm + 'm';
+}
+
+/* ═══════════════════════════════════════
+   AUDIO — SOFT CHIME
+═══════════════════════════════════════ */
+function playChime(type = 'complete') {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const freqs = type === 'complete' ? [523.25, 659.25, 783.99] : [392, 493.88];
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.18);
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.18 + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.6);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.65);
+    });
+    setTimeout(() => ctx.close(), 2000);
+  } catch {}
+}
+
+/* ═══════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════ */
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+function sendNotif(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '' });
+  }
+}
+
+/* ═══════════════════════════════════════
+   TIMER STATE
+═══════════════════════════════════════ */
+const T = {
+  mode:    'pomodoro',
+  subject: 'Math AA HL',
+  remaining: 25 * 60,
+  total:     25 * 60,
+  running:   false,
+  started:   false,
+  pomInCycle: 0,   // 0–3, how many pomodoros done in this cycle of 4
+  interval:  null,
+};
+
+function setMode(mode, btn) {
+  if (T.running) pauseTimer();
+  T.mode = mode;
+  const settings = getSettings();
+  const mins = mode === 'pomodoro' ? settings.pomodoro_minutes
+             : mode === 'short'    ? settings.short_break
+             :                       settings.long_break;
+  T.remaining = mins * 60;
+  T.total     = mins * 60;
+  T.started   = false;
+  updateTimerDisplay();
+  updateRing(T.remaining, T.total);
+  // Update mode pill UI
+  document.querySelectorAll('.mode-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const pills = document.querySelectorAll('.mode-pill');
+    const idx = ['pomodoro','short','long'].indexOf(mode);
+    if (idx >= 0) pills[idx].classList.add('active');
+  }
+  document.getElementById('timer-label').textContent = MODES[mode].label;
+  updatePlayButton();
+}
+
+function setSubject(subj, btn) {
+  T.subject = subj;
+  document.querySelectorAll('.subj-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Sync nav select
+  document.getElementById('nav-subj').value = subj;
+}
+function setSubjectFromNav(subj) {
+  T.subject = subj;
+  document.querySelectorAll('.subj-pill').forEach(b => {
+    b.classList.toggle('active', b.textContent === subj);
+  });
+}
+
+function toggleTimer() {
+  if (T.running) pauseTimer();
+  else if (T.started) resumeTimer();
+  else startTimer();
+}
+function startTimer() {
+  T.running = true; T.started = true;
+  requestNotifPermission();
+  tick();
+  T.interval = setInterval(tick, 1000);
+  updatePlayButton();
+}
+function pauseTimer() {
+  T.running = false;
+  clearInterval(T.interval);
+  updatePlayButton();
+}
+function resumeTimer() {
+  T.running = true;
+  T.interval = setInterval(tick, 1000);
+  updatePlayButton();
+}
+function resetTimer() {
+  clearInterval(T.interval);
+  T.running = false; T.started = false;
+  const settings = getSettings();
+  const mins = T.mode === 'pomodoro' ? settings.pomodoro_minutes
+             : T.mode === 'short'    ? settings.short_break : settings.long_break;
+  T.remaining = mins * 60;
+  T.total     = mins * 60;
+  // Instant ring reset (no transition)
+  const progress = document.getElementById('timer-progress');
+  progress.style.transition = 'none';
+  progress.style.strokeDashoffset = '0';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    progress.style.transition = 'stroke-dashoffset 0.9s linear';
+  }));
+  updateTimerDisplay();
+  updatePlayButton();
+}
+function skipTimer() {
+  clearInterval(T.interval);
+  T.running = false;
+  if (T.mode === 'pomodoro') {
+    const isLong = (T.pomInCycle + 1) % 4 === 0;
+    setMode(isLong ? 'long' : 'short');
+  } else {
+    setMode('pomodoro');
+  }
+}
+
+function tick() {
+  if (T.remaining <= 0) {
+    clearInterval(T.interval);
+    T.running = false;
+    onTimerComplete();
+    return;
+  }
+  T.remaining--;
+  updateTimerDisplay();
+  updateRing(T.remaining, T.total);
+}
+
+function onTimerComplete() {
+  T.started = false;
+  if (T.mode === 'pomodoro') {
+    // Save session
+    const session = {
+      id: Date.now(),
+      subject: T.subject,
+      duration_minutes: Math.round(T.total / 60),
+      completed_at: new Date().toISOString(),
+      type: 'pomodoro',
+    };
+    addSession(session);
+    T.pomInCycle = (T.pomInCycle + 1) % 4;
+    playChime('complete');
+    sendNotif('¡Pomodoro completado!', 'Tómate un descanso 🌿');
+    showFlash('pomodoro completado — descansa un momento');
+    updateSessionDots();
+    renderRecentSessions();
+    updatePlantSection();
+    updateStats();
+    // Auto-switch to break
+    const isLong = T.pomInCycle === 0;
+    setMode(isLong ? 'long' : 'short');
+  } else {
+    playChime('break');
+    showFlash('descanso terminado — ¡a por otro pomodoro!');
+    setMode('pomodoro');
+  }
+  updatePlayButton();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(T.remaining / 60);
+  const s = T.remaining % 60;
+  document.getElementById('timer-time').textContent =
+    String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+function updateRing(remaining, total) {
+  const progress = document.getElementById('timer-progress');
+  const offset = CIRCUMFERENCE * (1 - remaining / total);
+  progress.style.strokeDashoffset = String(offset);
+}
+function updatePlayButton() {
+  const btn = document.getElementById('play-btn');
+  if (T.running) {
+    btn.textContent = 'pausar'; btn.classList.add('running');
+  } else if (T.started) {
+    btn.textContent = 'continuar'; btn.classList.remove('running');
+  } else {
+    btn.textContent = 'iniciar'; btn.classList.remove('running');
+  }
+}
+function updateSessionDots() {
+  const row = document.getElementById('dots-row');
+  row.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const d = document.createElement('div');
+    d.className = 'pom-dot';
+    if (i < T.pomInCycle) d.classList.add('filled');
+    else if (i === T.pomInCycle) d.classList.add('current');
+    row.appendChild(d);
+  }
+}
+function renderRecentSessions() {
+  const container = document.getElementById('recent-sessions');
+  const sessions = getSessions().filter(s => s.type === 'pomodoro').slice(-5).reverse();
+  if (sessions.length === 0) {
+    container.innerHTML = '<div class="recent-header">Últimas sesiones</div><div class="no-sessions">Aún no hay sesiones. ¡Empieza tu primer pomodoro!</div>';
+    return;
+  }
+  container.innerHTML = '<div class="recent-header">Últimas sesiones</div>' +
+    sessions.map(s => `
+      <div class="sess-row">
+        <span class="sess-tag">${s.subject}</span>
+        <span class="sess-dur">${s.duration_minutes}min</span>
+        <span class="sess-ago">${timeAgo(s.completed_at)}</span>
+      </div>`).join('');
+}
+
+function showFlash(msg) {
+  const el = document.getElementById('completion-flash');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+/* ═══════════════════════════════════════
+   WILLOW SVG
+═══════════════════════════════════════ */
+let _seed = 0;
+function initRng(h) { _seed = Math.round(h * 100 + 7); }
+function rng() {
+  _seed = (_seed * 16807 + 0) % 2147483647;
+  return (_seed - 1) / 2147483646;
+}
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+function svgPath(d, attrs) { return svgEl('path', { d, ...attrs }); }
+function cubicAt(p0,p1,p2,p3,t) {
+  const m=1-t; return m*m*m*p0+3*m*m*t*p1+3*m*t*t*p2+t*t*t*p3;
+}
+
+function drawWillow(hours) {
+  const svg = document.getElementById('willow-svg');
+  svg.innerHTML = '';
+  const h = Math.min(100, Math.max(0, hours));
+  initRng(h);
+
+  const CX = 200, GROUND = 305;
+
+  // ── Ground
+  svg.appendChild(svgEl('rect', { x:0, y: GROUND+12, width:400, height:40, fill:'#d4c8a8', opacity:'0.25' }));
+  const soilRx = 35 + 90 * Math.pow(h/100, 0.5);
+  svg.appendChild(svgEl('ellipse', { cx:CX, cy:GROUND+7, rx:soilRx, ry:14, fill:'#c4b89a' }));
+  svg.appendChild(svgEl('line', { x1:20, y1:GROUND+13, x2:380, y2:GROUND+13, stroke:'#b8a888', 'stroke-width':'1' }));
+
+  if (h <= 0) return;
+
+  // ── Trunk height
+  const trunkH = h < 2 ? h * 14 : 28 + 168 * Math.pow((h - 2) / 98, 0.52);
+  const trunkW = Math.max(2, 2.5 + 11 * Math.pow(h / 100, 0.45));
+  const trunkTopY = GROUND - trunkH;
+
+  // ── Trunk path (slightly curved)
+  const curve1x = CX - 3, curve1y = GROUND - trunkH * 0.45;
+  const curve2x = CX + 4, curve2y = trunkTopY + 30;
+  svg.appendChild(svgPath(
+    `M ${CX} ${GROUND} C ${curve1x} ${curve1y} ${curve2x} ${curve2y} ${CX} ${trunkTopY}`,
+    { stroke:'#6b5a3e', 'stroke-width': trunkW, fill:'none', 'stroke-linecap':'round' }
+  ));
+
+  // ── Sprout (0–2h)
+  if (h < 3) {
+    drawSmallLeaf(svg, CX - 7, trunkTopY + 3, -38, 6, '#7a9e60');
+    drawSmallLeaf(svg, CX + 7, trunkTopY + 3,  38, 6, '#7a9e60');
+    return;
+  }
+
+  // ── Branch parameters
+  const numBranches  = Math.round(3 + 13 * Math.pow((h - 3) / 97, 0.58));
+  const maxSpread    = 25 + 135 * Math.pow(h / 100, 0.68);
+  const maxDrop      = 18 + 115 * Math.pow(h / 100, 0.72);
+  const frondLen     = 12 + 82  * Math.pow(h / 100, 0.76);
+  const numFronds    = Math.round(2 + 7 * Math.pow(h / 100, 0.6));
+  const branchW      = Math.max(0.8, trunkW * 0.22);
+
+  // ── Draw branches (alternating left/right)
+  for (let i = 0; i < numBranches; i++) {
+    const side = i % 2 === 0 ? 1 : -1;
+    const t = Math.floor(i / 2) / Math.max(1, Math.floor(numBranches / 2) - 1);
+    const spread = maxSpread * (0.35 + 0.65 * t);
+    const drop   = maxDrop   * (0.55 + 0.5  * t);
+    // Branch origin along upper trunk
+    const bStartY = trunkTopY + 4 + trunkH * 0.12 * (i / numBranches);
+    const bStartX = CX + side * trunkW * 0.3;
+    // Bezier control points — branch goes outward then droops
+    const cp1x = bStartX + side * spread * 0.28;
+    const cp1y = bStartY - 22 - rng() * 12;
+    const cp2x = CX      + side * spread * 0.72;
+    const cp2y = bStartY + drop * 0.55;
+    const bEndX = CX     + side * spread;
+    const bEndY = bStartY + drop;
+
+    svg.appendChild(svgPath(
+      `M ${bStartX} ${bStartY} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${bEndX} ${bEndY}`,
+      { stroke:'#7a6348', 'stroke-width': branchW, fill:'none', 'stroke-linecap':'round' }
+    ));
+
+    // ── Fronds hanging from points along the branch
+    for (let j = 0; j <= numFronds; j++) {
+      const ft = j / numFronds;
+      const fx = cubicAt(bStartX, cp1x, cp2x, bEndX, ft);
+      const fy = cubicAt(bStartY, cp1y, cp2y, bEndY, ft);
+      if (fy < trunkTopY - 2) continue;
+
+      const thisLen = frondLen * (0.45 + 0.65 * ft) * (0.75 + rng() * 0.5);
+      const sway    = side * (2 + rng() * 8);
+      const leafCol = ft > 0.6 ? '#4a5e3a' : '#7a9e60';
+
+      svg.appendChild(svgPath(
+        `M ${fx} ${fy} Q ${fx + sway * 0.5} ${fy + thisLen * 0.5} ${fx + sway} ${fy + thisLen}`,
+        { stroke: leafCol, 'stroke-width':'1.2', fill:'none', 'stroke-linecap':'round', opacity:'0.82' }
+      ));
+
+      if (h > 8) {
+        drawSmallLeaf(svg, fx + sway, fy + thisLen, side * (18 + rng() * 35), 2.5 + 2.5 * Math.pow(h/100, 0.5), leafCol);
+      }
+    }
+  }
+
+  // ── Extra leaf density at higher hours
+  if (h > 28) {
+    const extras = Math.floor((h - 28) / 10);
+    for (let i = 0; i < extras; i++) {
+      const side2 = rng() > 0.5 ? 1 : -1;
+      const lx = CX + side2 * (15 + rng() * maxSpread * 0.85);
+      const ly = trunkTopY - 8 + maxDrop * 0.35 * rng();
+      for (let k = 0; k < 3; k++) {
+        const ox = lx + (rng() - 0.5) * 18;
+        const oy = ly + rng() * 20;
+        drawSmallLeaf(svg, ox, oy, (rng() - 0.5) * 60, 3 + rng() * 2, '#b5c9a0');
+      }
+    }
+  }
+
+  // ── Flowers (76–99h)
+  if (h >= 76) {
+    const numFlowers = Math.floor((h - 76) / 3.5);
+    for (let i = 0; i < numFlowers; i++) {
+      const side3 = rng() > 0.5 ? 1 : -1;
+      const fx2 = CX + side3 * (maxSpread * 0.2 + rng() * maxSpread * 0.7);
+      const fy2 = trunkTopY + maxDrop * (0.2 + rng() * 0.65);
+      drawFlower(svg, fx2, fy2);
+    }
+  }
+
+  // ── Full bloom — golden glow (100h)
+  if (h >= 100) {
+    const glow = svgEl('ellipse', {
+      cx: CX, cy: GROUND - trunkH * 0.48,
+      rx: 90, ry: 70, fill:'#ffd060', opacity:'0.07'
+    });
+    svg.insertBefore(glow, svg.firstChild);
+    const glowRing = svgEl('ellipse', {
+      cx: CX, cy: GROUND - trunkH * 0.48,
+      rx: 95, ry: 75, fill:'none', stroke:'#d4a840',
+      'stroke-width':'1.5', opacity:'0.3'
+    });
+    svg.appendChild(glowRing);
+    // Bloom text
+    const txt = svgEl('text', {
+      x: CX, y: GROUND + 30, 'text-anchor':'middle',
+      'font-family':'Crimson Pro, Georgia, serif', 'font-style':'italic',
+      'font-size':'11', fill:'#7a6348', opacity:'0.8'
+    });
+    txt.textContent = 'Tu sauce ha florecido. 100 horas de trabajo profundo.';
+    svg.appendChild(txt);
+  }
+}
+
+function drawSmallLeaf(svg, x, y, angle, size, color) {
+  svg.appendChild(svgEl('ellipse', {
+    cx: x, cy: y, rx: size * 0.36, ry: size,
+    fill: color, opacity: '0.88',
+    transform: `rotate(${angle}, ${x}, ${y})`
+  }));
+}
+function drawFlower(svg, x, y) {
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    svg.appendChild(svgEl('ellipse', {
+      cx: x + Math.cos(a)*4, cy: y + Math.sin(a)*4,
+      rx:2, ry:3, fill:'#f0e8d0', opacity:'0.9',
+      transform:`rotate(${i*72}, ${x + Math.cos(a)*4}, ${y + Math.sin(a)*4})`
+    }));
+  }
+  svg.appendChild(svgEl('circle', { cx:x, cy:y, r:2.5, fill:'#e8d090', opacity:'0.9' }));
+}
+
+/* ═══════════════════════════════════════
+   PLANT SECTION UI
+═══════════════════════════════════════ */
+function updatePlantSection() {
+  const totalH = getTotalHours();
+  const todayH = getHoursToday();
+
+  drawWillow(totalH);
+
+  const pct = Math.min(100, (totalH / 100) * 100);
+  document.getElementById('plant-prog-fill').style.width = pct + '%';
+  const remaining = Math.max(0, 100 - totalH);
+  document.getElementById('plant-prog-label').textContent =
+    `${totalH.toFixed(1)} horas de estudio total · faltan ${remaining.toFixed(1)} para florecer`;
+
+  document.getElementById('daily-h').textContent = fmtHrs(todayH);
+  const cm = +(todayH * 3).toFixed(1);
+  document.getElementById('daily-cm').textContent = cm + ' cm';
+
+  // Scale the leaf icon based on today hours
+  const scale = Math.min(1.8, 0.6 + todayH * 0.4);
+  document.getElementById('leaf-icon').style.transform = `scale(${scale})`;
+}
+
+/* ═══════════════════════════════════════
+   STATS
+═══════════════════════════════════════ */
+function updateStats() {
+  const wk = getHoursThisWeek(), mo = getHoursThisMonth();
+  const streak = getCurrentStreak();
+  const totalPom = pomodoroSessions().length;
+
+  setStatNum('stat-week',      +wk.toFixed(1));
+  setStatNum('stat-month',     +mo.toFixed(1));
+  setStatNum('stat-streak',    streak);
+  setStatNum('stat-total-pom', totalPom);
+
+  renderBarChart('chart-week',  'week');
+  renderBarChart('chart-month', 'month');
+  renderSessionLog();
+}
+
+function setStatNum(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function renderBarChart(containerId, period) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const bySubj = getHoursBySubject(period);
+  const entries = Object.entries(bySubj).sort((a,b) => b[1] - a[1]);
+  const max = Math.max(0.001, ...Object.values(bySubj));
+
+  if (entries.every(e => e[1] === 0)) {
+    container.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:4px 0">Sin sesiones registradas aún.</div>';
+    return;
+  }
+  container.innerHTML = entries.map(([subj, h]) => {
+    const pct = Math.round((h / max) * 100);
+    return `<div class="bar-row">
+      <div class="bar-lbl">${subj}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-val">${fmtHrs(h)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSessionLog() {
+  const container = document.getElementById('session-log');
+  if (!container) return;
+  const sessions = getSessions().filter(s => s.type === 'pomodoro').slice(-20).reverse();
+  if (!sessions.length) {
+    container.innerHTML = '<div class="no-sessions" style="padding:14px">Sin sesiones registradas aún.</div>';
+    return;
+  }
+  // Count sessions per day for "session #N that day"
+  const dayCount = {};
+  // Process forward to count
+  const forward = sessions.slice().reverse();
+  const sessionNums = {};
+  forward.forEach(s => {
+    const day = new Date(s.completed_at).toDateString();
+    dayCount[day] = (dayCount[day] || 0) + 1;
+    sessionNums[s.id] = dayCount[day];
+  });
+  container.innerHTML = sessions.map(s => {
+    const d = new Date(s.completed_at);
+    const dateStr = d.toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+    const timeStr = d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="log-row">
+      <span class="log-date">${dateStr} ${timeStr}</span>
+      <span class="log-subj">${s.subject}</span>
+      <span class="log-dur">${s.duration_minutes}min</span>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════
+   COUNT-UP ANIMATION
+═══════════════════════════════════════ */
+function animateCountUp(el, target, duration = 900) {
+  const start = parseFloat(el.textContent) || 0;
+  const startT = performance.now();
+  function step(now) {
+    const p = Math.min(1, (now - startT) / duration);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const cur = start + (target - start) * ease;
+    el.textContent = target % 1 === 0 ? Math.round(cur) : cur.toFixed(1);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function initStatsObserver() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseFloat(el.textContent) || 0;
+        animateCountUp(el, target);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll('.stat-num').forEach(el => observer.observe(el));
+}
+
+/* ═══════════════════════════════════════
+   WELCOME
+═══════════════════════════════════════ */
+function dismissWelcome() {
+  document.getElementById('welcome-card').style.display = 'none';
+  lsSet('focus_welcomed', true);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+function init() {
+  // Welcome
+  if (lsGet('focus_welcomed', false)) {
+    document.getElementById('welcome-card').style.display = 'none';
+  }
+
+  // Restore timer settings
+  const s = getSettings();
+  T.remaining = s.pomodoro_minutes * 60;
+  T.total     = s.pomodoro_minutes * 60;
+
+  updateTimerDisplay();
+  updateRing(T.remaining, T.total);
+  updatePlayButton();
+  updateSessionDots();
+  renderRecentSessions();
+  updatePlantSection();
+  updateStats();
+  initStatsObserver();
+}
+
+init();
+</script>
+</body>
+</html>
