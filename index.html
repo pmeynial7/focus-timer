@@ -545,7 +545,13 @@ function lsGet(k, d) {
   try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : d; }
   catch { return d; }
 }
-function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+function lsSet(k, v) {
+  try {
+    localStorage.setItem(k, JSON.stringify(v));
+  } catch(e) {
+    console.warn('[focus] localStorage write failed ("' + k + '"):', e.message);
+  }
+}
 function getSessions()     { return lsGet('focus_sessions', []); }
 function addSession(s)     { const all = getSessions(); all.push(s); lsSet('focus_sessions', all); }
 function getSettings()     { return { pomodoro_minutes:25, short_break:5, long_break:15, notifications:true, ...lsGet('focus_settings',{}) }; }
@@ -730,7 +736,6 @@ function toggleTimer() {
 function startTimer() {
   T.running = true; T.started = true;
   requestNotifPermission();
-  tick();
   T.interval = setInterval(tick, 1000);
   updatePlayButton();
 }
@@ -824,6 +829,7 @@ function updateTimerDisplay() {
 }
 function updateRing(remaining, total) {
   const progress = document.getElementById('timer-progress');
+  if (!progress) return;
   const offset = CIRCUMFERENCE * (1 - remaining / total);
   progress.style.strokeDashoffset = String(offset);
 }
@@ -1186,10 +1192,30 @@ function dismissWelcome() {
 /* ═══════════════════════════════════════
    INIT
 ═══════════════════════════════════════ */
+function checkLocalStorage() {
+  try {
+    const KEY = '_focus_ls_test';
+    localStorage.setItem(KEY, '1');
+    const ok = localStorage.getItem(KEY) === '1';
+    localStorage.removeItem(KEY);
+    if (!ok) throw new Error('read-back mismatch');
+    return true;
+  } catch(e) {
+    console.error('[focus] localStorage no disponible:', e.message);
+    return false;
+  }
+}
+
 function init() {
-  // Welcome
+  // Verify localStorage is writable before anything else
+  if (!checkLocalStorage()) {
+    console.warn('[focus] Advertencia: los datos NO se guardarán (localStorage bloqueado).');
+  }
+
+  // Welcome card
   if (lsGet('focus_welcomed', false)) {
-    document.getElementById('welcome-card').style.display = 'none';
+    const wc = document.getElementById('welcome-card');
+    if (wc) wc.style.display = 'none';
   }
 
   // Restore timer settings
@@ -1205,9 +1231,12 @@ function init() {
   updatePlantSection();
   updateStats();
   initStatsObserver();
+
+  console.log('[focus] Iniciado. Sesiones guardadas:', getSessions().length,
+              '| Horas totales:', getTotalHours().toFixed(2));
 }
 
-init();
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
